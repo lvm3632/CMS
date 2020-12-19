@@ -13,6 +13,10 @@ app.get("/", (req, res) => {
   res.render("home/index");
 });
 
+app.get("/about", (req, res) => {
+  res.render("home/about");
+});
+
 app.listen(4500, () => {
   console.log(`listening on port 4500`);
 });
