@@ -9,7 +9,9 @@ router.all("/*", (req, res, next) => {
 });
 
 router.get("/", (req, res) => {
-  res.send("IT works");
+  Post.find({}).then((posts) => {
+    res.render("admin/posts", { posts: posts });
+  });
 });
 
 router.get("/create", (req, res) => {
