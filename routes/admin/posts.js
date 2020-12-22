@@ -59,4 +59,24 @@ router.get("/edit/:id", (req, res) => {
   // res.render("admin/posts/edit");
 });
 
+router.put("/edit/:id", (req, res) => {
+  Post.findOne({ _id: req.params.id }).then((post) => {
+    req.body.allowComments != undefined
+      ? (allowComments = true)
+      : (allowComments = false);
+
+    post.title = req.body.title;
+    post.status = req.body.status;
+    post.allowComments = allowComments;
+    post.body = req.body.body;
+
+    post.save().then((updatedPost) => {
+      res.redirect("/admin/posts");
+    });
+
+    // res.render("admin/posts/edit", { post: post });
+  });
+  // res.send("IT works");
+});
+
 module.exports = router;
