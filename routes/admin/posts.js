@@ -79,4 +79,10 @@ router.put("/edit/:id", (req, res) => {
   // res.send("IT works");
 });
 
+router.delete("/:id", (req, res) => {
+  Post.deleteOne({ _id: req.params.id }).then((result) => {
+    res.redirect("/admin/posts");
+  });
+});
+
 module.exports = router;
