@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Post = require("../../models/Post");
+const { isEmpty } = require("../../helpers/upload-helper");
 
 router.all("/*", (req, res, next) => {
   req.app.locals.layout = "admin";
@@ -23,6 +24,22 @@ router.get("/create", (req, res) => {
 });
 
 router.post("/create", (req, res) => {
+  let filename = "placeholder.jpg";
+
+  if (!isEmpty(req.files)) {
+    let file = req.files.file;
+    filename = Date.now() + "-" + file.name;
+
+    let dirUploads = "./public/uploads/";
+
+    file.mv(dirUploads + filename, (err) => {
+      if (err) throw err;
+      console.log("Success in upload new image " + filename);
+    });
+  } else {
+    console.log("Is empty");
+  }
+
   let allowComments = true;
 
   req.body.allowComments != undefined
@@ -34,6 +51,7 @@ router.post("/create", (req, res) => {
     status: req.body.status,
     allowComments: allowComments,
     body: req.body.body,
+    file: filename,
   });
 
   newPost
