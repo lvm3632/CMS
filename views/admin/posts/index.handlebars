@@ -10,6 +10,8 @@
    <th>Title</th>
    <th>Status</th>
    <th>Allow Comments</th>
+   <th>Date</th>
+
   </tr>
  </thead>
 
@@ -22,6 +24,8 @@
    <td>{{title}}</td>
    <td>{{status}}</td>
    <td>{{allowComments}}</td>
+   <td>{{generateTime date " MMMM Do YYYY, h:mm:ss a"}}</td>
+
    <td><a href="/admin/posts/edit/{{id}}" class="btn btn-info">Edit</a></td>
 
    <td>
