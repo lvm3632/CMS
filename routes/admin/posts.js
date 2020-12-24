@@ -1,7 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const Post = require("../../models/Post");
-const { isEmpty } = require("../../helpers/upload-helper");
+const { isEmpty, uploadDir } = require("../../helpers/upload-helper");
+
+const fs = require("fs");
+const path = require("path");
 
 router.all("/*", (req, res, next) => {
   req.app.locals.layout = "admin";
@@ -24,47 +27,65 @@ router.get("/create", (req, res) => {
 });
 
 router.post("/create", (req, res) => {
-  let filename = "placeholder.jpg";
-
-  if (!isEmpty(req.files)) {
-    let file = req.files.file;
-    filename = Date.now() + "-" + file.name;
-
-    let dirUploads = "./public/uploads/";
-
-    file.mv(dirUploads + filename, (err) => {
-      if (err) throw err;
-      console.log("Success in upload new image " + filename);
-    });
-  } else {
-    console.log("Is empty");
+  let errors = [];
+  switch (errors.length <= 0) {
+    case !req.body.title:
+      errors.push({ message: "please add a title" });
+    case !req.body.body:
+      errors.push({ message: "please add a description" });
   }
 
-  let allowComments = true;
+  if (errors.length > 0) {
+    res.render("admin/posts/create", {
+      errors: errors,
+    });
+  } else {
+    let filename = "placeholder.jpg";
 
-  req.body.allowComments != undefined
-    ? (allowComments = true)
-    : (allowComments = false);
+    if (!isEmpty(req.files)) {
+      let file = req.files.file;
+      filename = Date.now() + "-" + file.name;
 
-  const newPost = new Post({
-    title: req.body.title,
-    status: req.body.status,
-    allowComments: allowComments,
-    body: req.body.body,
-    file: filename,
-  });
+      let dirUploads = "./public/uploads/";
 
-  newPost
-    .save()
-    .then((savedPost) => {
-      console.log(savedPost);
-      res.redirect("/admin/posts");
-    })
-    .catch((error) => {
-      console.log(error);
-      console.log("couldn't save post");
+      file.mv(dirUploads + filename, (err) => {
+        if (err) throw err;
+        console.log("Success in upload new image " + filename);
+      });
+    } else {
+      console.log("Is empty");
+    }
+
+    let allowComments = true;
+
+    req.body.allowComments != undefined
+      ? (allowComments = true)
+      : (allowComments = false);
+
+    const newPost = new Post({
+      title: req.body.title,
+      status: req.body.status,
+      allowComments: allowComments,
+      body: req.body.body,
+      file: filename,
     });
 
+    newPost
+      .save()
+      .then((savedPost) => {
+        req.flash(
+          "success_message",
+          `${savedPost.title} was created successfully`
+        );
+        console.log(savedPost);
+        res.redirect("/admin/posts");
+      })
+      .catch((error) => {
+        //res.render('admin/posts/create', {errors: validator.errors});
+        console.log(error);
+        console.log("couldn't save post");
+      });
+  }
   console.log(req.body);
 });
 
@@ -88,7 +109,20 @@ router.put("/edit/:id", (req, res) => {
     post.allowComments = allowComments;
     post.body = req.body.body;
 
+    if (!isEmpty(req.files)) {
+      let file = req.files.file;
+      let filename = Date.now() + "-" + file.name;
+      post.file = filename;
+      let dirUploads = "./public/uploads/";
+
+      file.mv(dirUploads + filename, (err) => {
+        if (err) throw err;
+        console.log("Success in upload new image " + filename);
+      });
+    }
+
     post.save().then((updatedPost) => {
+      req.flash("success_message", "Post was successfully updated");
       res.redirect("/admin/posts");
     });
 
@@ -97,9 +131,19 @@ router.put("/edit/:id", (req, res) => {
   // res.send("IT works");
 });
 
-router.delete("/:id", (req, res) => {
+/*router.delete("/:id", (req, res) => {
   Post.deleteOne({ _id: req.params.id }).then((result) => {
     res.redirect("/admin/posts");
+  });
+});*/
+
+router.delete("/:id", (req, res) => {
+  Post.findOne({ _id: req.params.id }).then((post) => {
+    fs.unlink(uploadDir + post.file, (err) => {
+      req.flash("deleted_message", "Post was successfuly deleted");
+      post.remove();
+      res.redirect("/admin/posts");
+    });
   });
 });
 

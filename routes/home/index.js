@@ -8,6 +8,12 @@ router.all("/*", (req, res, next) => {
 });
 
 router.get("/", (req, res) => {
+  req.session.michel = "Michel Lujano";
+
+  if (req.session.michel) {
+    console.log(`we found ${req.session.michel}`);
+  }
+
   res.render("home/index");
 });
 
